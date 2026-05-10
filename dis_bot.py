@@ -337,6 +337,46 @@ async def huongdan(ctx):
     )
     embed.set_footer(text="Lệnh !settime, !diemdanh, !xuatcsv yêu cầu quyền Quản lý Server")
     await ctx.send(embed=embed)
+# ──────────────────────────────────────────────────
+# TÍNH NĂNG QUẢN LÝ CTF (Gọn nhẹ - 1 giải 1 kênh)
+# ──────────────────────────────────────────────────
 
+@bot.command()
+@commands.has_permissions(manage_channels=True)
+async def ctf(ctx, *, ten_giai: str):
+    """!ctf [Tên giải] — Tạo 1 kênh duy nhất cho giải CTF"""
+    category = ctx.channel.category
+    
+    # Xử lý tên: chữ thường, thay khoảng trắng bằng gạch ngang
+    ten_kenh = ten_giai.strip().replace(" ", "-").lower()
+    
+    try:
+        # Tạo kênh text chung cho giải
+        channel = await ctx.guild.create_text_channel(ten_kenh, category=category)
+        
+        embed = discord.Embed(
+            title="🎯 CHIẾN DỊCH MỚI KHỞI ĐỘNG!",
+            description=f"Đã mở base {channel.mention} cho giải **{ten_giai}**. Anh em tập trung vào đây chia việc nhé!",
+            color=discord.Color.blue()
+        )
+        await ctx.send(embed=embed)
+    except Exception as e:
+        await ctx.send("❌ Lỗi: Bot không thể tạo kênh. Ông kiểm tra lại quyền `Manage Channels` của bot nhé.")
+
+@bot.command()
+async def solve(ctx, *, ten_bai: str):
+    """!solve [Tên bài] — Báo cáo đã lấy được Flag của bài đó"""
+    # Lấy giờ hiện tại theo múi giờ Việt Nam
+    now = datetime.now(TIME_ZONE).strftime("%H:%M:%S")
+    
+    embed = discord.Embed(
+        title="🚩 CỜ ĐÃ BỊ LỤM! 🚩",
+        description=f"Đỉnh chóp! **{ctx.author.mention}** vừa clear thành công bài **`{ten_bai}`**!",
+        color=discord.Color.green()
+    )
+    embed.set_thumbnail(url=ctx.author.display_avatar.url) # Bỏ thêm cái avatar người giải cho ngầu
+    embed.set_footer(text=f"Xác nhận lụm cờ lúc {now}")
+    
+    await ctx.send(embed=embed)
 
 bot.run(TOKEN)
