@@ -9,6 +9,26 @@ import io
 
 # ==================== CẤU HÌNH ====================
 import os
+from threading import Thread
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+# Trang web giả để lừa Render
+class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot dang chay vao diem danh di anh em!")
+
+def run_server():
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(('0.0.0.0', port), SimpleHTTPRequestHandler)
+    server.serve_forever()
+
+def keep_alive():
+    t = Thread(target=run_server)
+    t.daemon = True
+    t.start()
+
 TOKEN = os.getenv('DISCORD_TOKEN')
 TARGET_VOICE_ID = 1502966136914972762
 LOG_CHANNEL_ID  = 1502985378335035543
@@ -385,4 +405,9 @@ async def solve(ctx, *, ten_bai: str):
     embed.set_footer(text=f"Xác nhận lúc {now}")
     
     await ctx.send(embed=embed)
+
+# Gọi cái web giả chạy ngầm
+keep_alive()
+
+# Chạy bot Discord
 bot.run(TOKEN)
