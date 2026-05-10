@@ -341,42 +341,48 @@ async def huongdan(ctx):
 # TÍNH NĂNG QUẢN LÝ CTF (Gọn nhẹ - 1 giải 1 kênh)
 # ──────────────────────────────────────────────────
 
+# ID danh mục ông vừa đưa
+CTF_CATEGORY_ID = 1503058514581655552 
+
 @bot.command()
 @commands.has_permissions(manage_channels=True)
 async def ctf(ctx, *, ten_giai: str):
-    """!ctf [Tên giải] — Tạo 1 kênh duy nhất cho giải CTF"""
-    category = ctx.channel.category
-    
-    # Xử lý tên: chữ thường, thay khoảng trắng bằng gạch ngang
+    """!ctf [Tên giải] — Tạo kênh giải nằm trong danh mục cố định"""
+    guild = ctx.guild
+    # Tìm danh mục dựa trên ID ông cung cấp
+    category = bot.get_channel(CTF_CATEGORY_ID) 
+
+    if category is None or not isinstance(category, discord.CategoryChannel):
+        await ctx.send("❌ Lỗi: Không tìm thấy danh mục hoặc ID không phải là ID danh mục. Ông kiểm tra lại nhé!")
+        return
+
     ten_kenh = ten_giai.strip().replace(" ", "-").lower()
-    
+
     try:
-        # Tạo kênh text chung cho giải
-        channel = await ctx.guild.create_text_channel(ten_kenh, category=category)
+        # Luôn tạo kênh bên trong danh mục đó
+        channel = await guild.create_text_channel(ten_kenh, category=category)
         
         embed = discord.Embed(
-            title="🎯 CHIẾN DỊCH MỚI KHỞI ĐỘNG!",
-            description=f"Đã mở base {channel.mention} cho giải **{ten_giai}**. Anh em tập trung vào đây chia việc nhé!",
+            title="🎯 CHIẾN DỊCH MỚI!",
+            description=f"Đã tạo kênh {channel.mention} trong danh mục **{category.name}**.\nAnh em tập trung vào đây thảo luận nhé!",
             color=discord.Color.blue()
         )
         await ctx.send(embed=embed)
     except Exception as e:
-        await ctx.send("❌ Lỗi: Bot không thể tạo kênh. Ông kiểm tra lại quyền `Manage Channels` của bot nhé.")
+        await ctx.send(f"❌ Lỗi: Bot không thể tạo kênh. Kiểm tra lại quyền `Manage Channels` nhé!")
 
 @bot.command()
 async def solve(ctx, *, ten_bai: str):
-    """!solve [Tên bài] — Báo cáo đã lấy được Flag của bài đó"""
-    # Lấy giờ hiện tại theo múi giờ Việt Nam
+    """!solve [Tên bài] — Thông báo đã giải xong bài đó ngay trong kênh hiện tại"""
     now = datetime.now(TIME_ZONE).strftime("%H:%M:%S")
     
     embed = discord.Embed(
         title="🚩 CỜ ĐÃ BỊ LỤM! 🚩",
-        description=f"Đỉnh chóp! **{ctx.author.mention}** vừa clear thành công bài **`{ten_bai}`**!",
+        description=f"Tuyệt vời! **{ctx.author.mention}** đã giải thành công bài **`{ten_bai}`**!",
         color=discord.Color.green()
     )
-    embed.set_thumbnail(url=ctx.author.display_avatar.url) # Bỏ thêm cái avatar người giải cho ngầu
-    embed.set_footer(text=f"Xác nhận lụm cờ lúc {now}")
+    embed.set_thumbnail(url=ctx.author.display_avatar.url)
+    embed.set_footer(text=f"Xác nhận lúc {now}")
     
     await ctx.send(embed=embed)
-
 bot.run(TOKEN)
